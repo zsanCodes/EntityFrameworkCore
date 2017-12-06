@@ -770,6 +770,10 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
                     VisitNullConditionalEqualExpression(nullConditionalEqualExpression);
                     break;
 
+                case InjectParametersExpression injectParametersExpression:
+                    VisitInjectParametersExpression(injectParametersExpression);
+                    break;
+
                 default:
                     UnhandledExpressionType(extensionExpression);
                     break;
@@ -821,6 +825,28 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
             Visit(nullConditionalEqualExpression.OuterKey);
             _stringBuilder.Append(" ?= ");
             Visit(nullConditionalEqualExpression.InnerKey);
+        }
+
+        private void VisitInjectParametersExpression(InjectParametersExpression injectParametersExpression)
+        {
+            _stringBuilder.AppendLine("InjectParameters(");
+            _stringBuilder.AppendLine("{");
+            using (_stringBuilder.Indent())
+            {
+                for (var i = 0; i < injectParametersExpression.Parameters.Count; i++)
+                {
+                    //Visit(injectParametersExpression.Parameters[i].Name);
+                    _stringBuilder.Append(injectParametersExpression.Parameters[i].Name + " => ");
+                    Visit(injectParametersExpression.ParameterValues[i]);
+
+                    _stringBuilder.AppendLine();
+                }
+
+                Visit(injectParametersExpression.Query);
+            }
+
+            _stringBuilder.AppendLine();
+            _stringBuilder.Append("})");
         }
 
         private void VisitArguments(IList<Expression> arguments, Action<string> appendAction, string lastSeparator = "")

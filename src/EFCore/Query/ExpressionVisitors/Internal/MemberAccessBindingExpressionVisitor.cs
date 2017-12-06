@@ -232,6 +232,42 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
                 }
             }
 
+            if (node is InjectParametersExpression injectParametersExpression)
+            {
+                var modified = false;
+
+                var newParameters = injectParametersExpression.Parameters;
+                //var newParameters = new List<ParameterExpression>();
+                //foreach (var parameter in injectParametersExpression.Parameters)
+                //{
+                //    var newParameter = (ParameterExpression)Visit(parameter);
+                //    newParameters.Add(newParameter);
+                //    if (newParameter != parameter)
+                //    {
+                //        modified = true;
+                //    }
+                //}
+
+                var newParameterValues = new List<Expression>();
+                foreach (var parameterValue in injectParametersExpression.ParameterValues)
+                {
+                    var newParameterValue = Visit(parameterValue);
+                    newParameterValues.Add(newParameterValue);
+                    if (newParameterValue != parameterValue)
+                    {
+                        modified = true;
+                    }
+                }
+
+                //_parameterMapping = newParameters.Zip(newParameterValues, (p, v) => new { p, v }).ToDictionary(e => e.p, e => e.v);
+
+                var newQuery = Visit(injectParametersExpression.Query);
+
+                return modified || newQuery != injectParametersExpression.Query
+                    ? new InjectParametersExpression(newParameters, newParameterValues, newQuery)
+                    : node;
+            }
+
             return base.VisitExtension(node);
         }
 

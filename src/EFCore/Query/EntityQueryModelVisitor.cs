@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Extensions.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
@@ -170,6 +171,9 @@ namespace Microsoft.EntityFrameworkCore.Query
                 QueryCompilationContext.FindQuerySourcesRequiringMaterialization(this, queryModel);
                 QueryCompilationContext.DetermineQueryBufferRequirement(queryModel);
 
+                var injectParametersExpressionVisitor = new InjectParametersExpressionVisitor(QueryCompilationContext);
+                injectParametersExpressionVisitor.QueryModelVisitor.VisitQueryModel(queryModel);
+
                 VisitQueryModel(queryModel);
 
                 SingleResultToSequence(queryModel);
@@ -277,7 +281,7 @@ namespace Microsoft.EntityFrameworkCore.Query
 
             // Rewrite includes/navigations
 
-            RewriteProjectedCollectionNavigationsToIncludes(queryModel);
+            //RewriteProjectedCollectionNavigationsToIncludes(queryModel);
 
             var includeCompiler = new IncludeCompiler(QueryCompilationContext, _querySourceTracingExpressionVisitorFactory);
 
@@ -309,9 +313,663 @@ namespace Microsoft.EntityFrameworkCore.Query
 
             _queryOptimizer.Optimize(QueryCompilationContext, queryModel);
 
+            //var injectParametersExpressionVisitor = new InjectParametersExpressionVisitor();
+            //injectParametersExpressionVisitor.QueryModelVisitor.VisitQueryModel(queryModel);
+
             // Log results
 
             QueryCompilationContext.Logger.QueryModelOptimized(queryModel);
+        }
+
+        //private class InjectParametersQueryModelVisitor : QueryModelVisitorBase
+        //{
+        //    private class InnerVisitor : RelinqExpressionVisitor
+        //    {
+        //        private const string ParameterNamePrefix = "_outer_";
+
+        //        public InnerVisitor()
+        //        {
+        //            SearchedQuerySources = new List<IQuerySource>();
+        //            FoundOutsideCorrelations = new Dictionary<Expression, ParameterExpression>();
+        //        }
+
+        //        public List<IQuerySource> SearchedQuerySources { get; private set; }
+
+        //        public Dictionary<Expression, ParameterExpression> FoundOutsideCorrelations { get; private set; }
+
+        //        protected override Expression VisitMember(MemberExpression node)
+        //        {
+        //            if (node.Expression is QuerySourceReferenceExpression qsre
+        //                && SearchedQuerySources.Contains(qsre.ReferencedQuerySource))
+        //            {
+        //                // TODO: also remove duplicates
+        //                // also, deal with null conditional
+
+        //                var parameter = Expression.Parameter(node.Type, ParameterNamePrefix + node.Member.Name);
+        //                FoundOutsideCorrelations.Add(node, parameter);
+
+        //                return parameter;
+        //            }
+
+        //            return node;
+        //        }
+
+        //        protected override Expression VisitMethodCall(MethodCallExpression node)
+        //        {
+        //            if (node.IsEFProperty())
+        //            {
+        //                if (node.Arguments[0] is QuerySourceReferenceExpression qsre
+        //                    && SearchedQuerySources.Contains(qsre.ReferencedQuerySource))
+        //                {
+        //                    var parameter = Expression.Parameter(node.Type, ParameterNamePrefix + node.Member.Name);
+
+        //                    // TODO: also remove duplicates
+        //                    // also, deal with null conditional
+        //                    FoundOutsideCorrelations.Add(node);
+        //                }
+
+        //                return node;
+        //            }
+
+        //            return base.VisitMethodCall(node);
+        //        }
+
+        //        protected override Expression VisitSubQuery(SubQueryExpression expression)
+        //        {
+        //            expression.QueryModel.TransformExpressions(Visit);
+
+        //            return expression;
+        //        }
+        //    }
+
+        //    private InnerVisitor _innerVisitor;
+
+        //    public InjectParametersQueryModelVisitor()
+        //    {
+        //        _innerVisitor = new InnerVisitor();
+        //    }
+
+        //    public override void VisitQueryModel(QueryModel queryModel)
+        //    {
+        //        base.VisitQueryModel(queryModel);
+
+        //        // after we are done with this level of QM, repeat the process for all nested subqueries
+        //        _innerVisitor.SearchedQuerySources.Clear();
+        //        queryModel.TransformExpressions(new TransformingQueryModelExpressionVisitor<InjectParametersQueryModelVisitor>(this).Visit);
+        //    }
+
+        //    public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        fromClause.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            // TODO: generate better names
+        //            fromClause.FromExpression = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                fromClause.FromExpression);
+        //        }
+
+        //        _innerVisitor.SearchedQuerySources.Add(fromClause);
+        //    }
+
+        //    public override void VisitAdditionalFromClause(AdditionalFromClause fromClause, QueryModel queryModel, int index)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        fromClause.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            // TODO: generate better names
+        //            fromClause.FromExpression = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                fromClause.FromExpression);
+        //        }
+
+        //        _innerVisitor.SearchedQuerySources.Add(fromClause);
+        //    }
+
+        //    public override void VisitJoinClause(JoinClause joinClause, QueryModel queryModel, int index)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        joinClause.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            // TODO: generate better names
+
+        //            // TODO: kinda hacky - we wrap the inject parameter expression around inner sequence, even if the parameters are needed in the key selectors
+        //            // this should be fine since relinq processes inner sequence before key selectors
+        //            joinClause.InnerSequence = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                joinClause.InnerSequence);
+        //        }
+
+        //        _innerVisitor.SearchedQuerySources.Add(joinClause);
+        //    }
+
+        //    // not needed?
+        //    //public override void VisitGroupJoinClause(GroupJoinClause groupJoinClause, QueryModel queryModel, int index)
+        //    //{
+        //    //}
+
+        //    public override void VisitWhereClause(WhereClause whereClause, QueryModel queryModel, int index)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        whereClause.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            whereClause.Predicate = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                whereClause.Predicate);
+        //        }
+        //    }
+
+        //    public override void VisitOrdering(Ordering ordering, QueryModel queryModel, OrderByClause orderByClause, int index)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        ordering.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            ordering.Expression = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                ordering.Expression);
+        //        }
+        //    }
+
+        //    public override void VisitSelectClause(SelectClause selectClause, QueryModel queryModel)
+        //    {
+        //        _innerVisitor.FoundOutsideCorrelations.Clear();
+        //        selectClause.TransformExpressions(_innerVisitor.Visit);
+
+        //        if (_innerVisitor.FoundOutsideCorrelations.Any())
+        //        {
+        //            selectClause.Selector = new InjectParametersExpression(
+        //                _innerVisitor.FoundOutsideCorrelations.Select((e, i) => Expression.Constant("outer_" + i)).ToList(),
+        //                _innerVisitor.FoundOutsideCorrelations,
+        //                selectClause.Selector);
+
+        //            var foo = queryModel.Print();
+        //        }
+        //    }
+
+        //    public override void VisitResultOperator(ResultOperatorBase resultOperator, QueryModel queryModel, int index)
+        //    {
+        //        // tricky - need to handle every result op separately?
+        //        base.VisitResultOperator(resultOperator, queryModel, index);
+        //    }
+        //}
+
+        private class InjectParametersMappingScope
+        {
+            private const string ParameterNamePrefix = "_outer_";
+            private int _parameterCounter = 0;
+
+            public Dictionary<IQuerySource, Dictionary<Expression, ParameterExpression>> ParameterMappings { get; private set; }
+                = new Dictionary<IQuerySource, Dictionary<Expression, ParameterExpression>>();
+
+            public InjectParametersMappingScope ParentScope { get; set; }
+
+            //public ParameterExpression TryMapToParameter(IQuerySource querySource, string name, Expression expression)
+            //{
+            //    if (_parameterMappings.TryGetValue(querySource, out var mappings))
+            //    {
+            //        if (mappings.TryGetValue(expression, out var result))
+            //        {
+            //            return result;
+            //        }
+
+            //        var newParameter = Expression.Parameter(expression.Type, ParameterNamePrefix + name);
+            //        mappings[expression] = newParameter;
+
+            //        return newParameter;
+            //    }
+
+            //    return _parentScope?.TryMapToParameter(querySource, name, expression);
+            //}
+
+            public InjectParametersMappingScope(InjectParametersMappingScope parentScope)
+            {
+                ParentScope = parentScope;
+            }
+
+            public void AddQuerySource(IQuerySource querySource)
+            {
+                if (!ParameterMappings.ContainsKey(querySource))
+                {
+                    ParameterMappings[querySource] = new Dictionary<Expression, ParameterExpression>();
+                }
+            }
+
+            public bool TryMapToParameter(IQuerySource querySource, string name, Expression expression, out ParameterExpression result)
+            {
+                if (ParameterMappings.TryGetValue(querySource, out var mappings))
+                {
+                    if (mappings.TryGetValue(expression, out result))
+                    {
+                        return true;
+                    }
+
+                    result = Expression.Parameter(expression.Type, ParameterNamePrefix + name + _parameterCounter++);
+                    mappings[expression] = result;
+
+                    return true;
+                }
+
+                if (ParentScope != null)
+                {
+                    return ParentScope.TryMapToParameter(querySource, name, expression, out result);
+                }
+
+                result = null;
+
+                return false;
+            }
+        }
+
+        private class InjectParametersExpressionVisitor : RelinqExpressionVisitor
+        {
+            private QueryCompilationContext _queryCompilationContext;
+
+            //private InjectParametersMappingScope _injectParametersMappingScope;
+            private InjectParametersMappingScope _accessibleParameterMappingScope;
+
+            public InjectParametersExpressionVisitor(QueryCompilationContext queryCompilationContext)
+            {
+                _queryCompilationContext = queryCompilationContext;
+                QueryModelVisitor = new InjectParametersQueryModelVisitor(this);
+            }
+
+            public InjectParametersQueryModelVisitor QueryModelVisitor { get; }
+
+            protected override Expression VisitMember(MemberExpression memberExpression)
+            {
+                if (_accessibleParameterMappingScope != null
+                    && memberExpression.Expression is QuerySourceReferenceExpression qsre
+                    && _accessibleParameterMappingScope.TryMapToParameter(
+                        qsre.ReferencedQuerySource,
+                        memberExpression.Member.Name,
+                        memberExpression,
+                        out var parameter))
+                {
+                    // hack
+                    _queryModelMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(memberExpression, parameter));
+
+                    return parameter;
+                }
+
+                return base.VisitMember(memberExpression);
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression methodCallExpression)
+            {
+                if (_accessibleParameterMappingScope != null
+                    && methodCallExpression.IsEFProperty()
+                    && methodCallExpression.Arguments[0] is QuerySourceReferenceExpression qsre
+                    && _accessibleParameterMappingScope.TryMapToParameter(
+                        qsre.ReferencedQuerySource,
+                        (string)((ConstantExpression)methodCallExpression.Arguments[1]).Value,
+                        methodCallExpression,
+                        out var parameter))
+                {
+                    // hack
+                    _queryModelMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(methodCallExpression, parameter));
+
+                    return parameter;
+                }
+
+                return base.VisitMethodCall(methodCallExpression);
+            }
+
+            private static readonly MethodInfo _setParameterMethodInfo
+                = typeof(QueryContext).GetTypeInfo().GetDeclaredMethod(nameof(QueryContext.SetParameter));
+
+
+
+
+            private IEnumerable<KeyValuePair<Expression, ParameterExpression>> Foo(InjectParametersMappingScope scope)
+            {
+                var result = scope.ParameterMappings.SelectMany(m => m.Value);
+                if (scope.ParentScope != null)
+                {
+                    return result.Concat(Foo(scope.ParentScope));
+                }
+
+                return result;
+            }
+
+
+            private bool IsIEnumerable(Type type)
+            {
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return true;
+                }
+
+                return type.GetTypeInfo().GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+            }
+
+            private QueryModel _currentQueryModel;
+
+            private Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>> _queryModelMappings
+                = new Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>>();
+
+            protected override Expression VisitSubQuery(SubQueryExpression expression)
+            {
+                var previousScope = _accessibleParameterMappingScope;
+
+                try
+                {
+                    _accessibleParameterMappingScope = QueryModelVisitor.MappingScope;
+
+                    var previousQueryModel = _currentQueryModel;
+                    _currentQueryModel = expression.QueryModel;
+
+                    if (!_queryModelMappings.ContainsKey(_currentQueryModel))
+                    {
+                        _queryModelMappings[expression.QueryModel] = new List<KeyValuePair<Expression, ParameterExpression>>();
+
+                        QueryModelVisitor.VisitQueryModel(expression.QueryModel);
+                    }
+
+                    //var mappingsForCurrentScope = Foo(_accessibleParameterMappingScope);// _accessibleParameterMappingScope.ParameterMappings.SelectMany(m => m.Value);
+
+                    var mappingsForCurrentScope = _queryModelMappings[_currentQueryModel];
+
+                    _currentQueryModel = previousQueryModel;
+
+
+
+                    if (mappingsForCurrentScope.Any())
+                    {
+                        //try
+                        {
+                            if (IsIEnumerable(expression.Type)
+                                && expression.Type != typeof(string)
+                                && expression.Type != typeof(byte[]))
+                            {
+                                var methodInfo = _queryCompilationContext.LinqOperatorProvider.InjectParametersMethod;
+
+                                //var generic = methodInfo.MakeGenericMethod(expression.QueryModel.SelectClause.Selector.Type);
+                                var generic = methodInfo.MakeGenericMethod(expression.Type.GetGenericArguments()[0]);
+
+                                var expressions = new List<Expression>();
+
+                                var prmNames = Expression.Parameter(typeof(string[]), "names");
+                                var prmValues = Expression.Parameter(typeof(object[]), "values");
+
+                                expressions.Add(expression);
+
+                                var lambda = Expression.Lambda(
+                                    Expression.Block(expressions),
+                                    prmNames,
+                                    prmValues);
+
+                                var methodcall = Expression.Call(
+                                    generic,
+                                    QueryContextParameter,
+                                    expression,
+                                    Expression.NewArrayInit(typeof(string), mappingsForCurrentScope.Select(m => Expression.Constant(m.Value.Name))),
+                                    Expression.NewArrayInit(typeof(object), mappingsForCurrentScope.Select(m => Expression.Convert(m.Key, typeof(object)))));
+
+                                if (methodcall.Type != expression.Type)
+                                {
+                                    //var ffff = _queryCompilationContext.LinqOperatorProvider.ToQueryable.MakeGenericMethod(expression.QueryModel.SelectClause.Selector.Type);
+                                    var ffff = _queryCompilationContext.LinqOperatorProvider.ToQueryable.MakeGenericMethod(expression.Type.GetGenericArguments()[0]);
+                                    return Expression.Call(ffff, methodcall, QueryContextParameter);
+                                }
+
+                                return methodcall;
+                            }
+                            else
+                            {
+                                var methodInfo = _queryCompilationContext.LinqOperatorProvider.InjectParametersScalarMethod;
+                                var generic = methodInfo.MakeGenericMethod(expression.Type);
+
+                                var methodcall = Expression.Call(
+                                    generic,
+                                    QueryContextParameter,
+                                    Expression.Lambda(expression),// lambda,
+                                    Expression.NewArrayInit(typeof(string), mappingsForCurrentScope.Select(m => Expression.Constant(m.Value.Name))),
+                                    Expression.NewArrayInit(typeof(object), mappingsForCurrentScope.Select(m => Expression.Convert(m.Key, typeof(object)))));
+
+                                return methodcall;
+                            }
+
+                            //if (expression.Type == typeof(string)
+                            //    || expression.Type == typeof(byte[])
+                            //    || !IsIEnumerable(expression.Type)
+                            //{
+                            //    var methodInfo = _queryCompilationContext.LinqOperatorProvider.InjectParametersScalarMethod;
+                            //    var generic = methodInfo.MakeGenericMethod(expression.Type);
+
+                            //    var methodcall = Expression.Call(
+                            //        generic,
+                            //        QueryContextParameter,
+                            //        Expression.Lambda(expression),// lambda,
+                            //        Expression.NewArrayInit(typeof(string), mappingsForCurrentScope.Select(m => Expression.Constant(m.Value.Name))),
+                            //        Expression.NewArrayInit(typeof(object), mappingsForCurrentScope.Select(m => Expression.Convert(m.Key, typeof(object)))));
+
+                            //    return methodcall;
+                            //}
+                            //else
+                            //{
+                                //var methodInfo = _queryCompilationContext.LinqOperatorProvider.InjectParametersMethod;
+
+                                //var generic = methodInfo.MakeGenericMethod(expression.QueryModel.SelectClause.Selector.Type);
+
+                                //var expressions = new List<Expression>();
+
+                                //var prmNames = Expression.Parameter(typeof(string[]), "names");
+                                //var prmValues = Expression.Parameter(typeof(object[]), "values");
+
+                                //expressions.Add(expression);
+
+                                //var lambda = Expression.Lambda(
+                                //    Expression.Block(expressions),
+                                //    prmNames,
+                                //    prmValues);
+
+                                //var methodcall = Expression.Call(
+                                //    generic,
+                                //    QueryContextParameter,
+                                //    expression,
+                                //    Expression.NewArrayInit(typeof(string), mappingsForCurrentScope.Select(m => Expression.Constant(m.Value.Name))),
+                                //    Expression.NewArrayInit(typeof(object), mappingsForCurrentScope.Select(m => Expression.Convert(m.Key, typeof(object)))));
+
+                                //if (methodcall.Type != expression.Type)
+                                //{
+                                //    var ffff = _queryCompilationContext.LinqOperatorProvider.ToQueryable.MakeGenericMethod(expression.QueryModel.SelectClause.Selector.Type);
+                                //    return Expression.Call(ffff, methodcall, QueryContextParameter);
+                                //}
+
+                                //return methodcall;
+
+
+                            //}
+
+                            //return new InjectParametersExpression(
+                            //    mappingsForCurrentScope.Select(m => m.Value).ToList().AsReadOnly(),
+                            //    mappingsForCurrentScope.Select(m => m.Key).ToList().AsReadOnly(),
+                            //    expression);
+                        }
+                        //finally
+                        //{
+                        //    foreach (var mapping in _accessibleParameterMappingScope.ParameterMappings)
+                        //    {
+                        //        mapping.Value.Clear();
+                        //    }
+                        //}
+                    }
+
+                    return expression;
+                }
+                finally
+                {
+                    _accessibleParameterMappingScope = previousScope;
+                }
+            }
+        }
+
+        private class InjectParametersQueryModelVisitor : ExpressionTransformingQueryModelVisitor<InjectParametersExpressionVisitor>
+        {
+            public InjectParametersMappingScope MappingScope { get; private set; } = null;
+
+            public InjectParametersQueryModelVisitor([NotNull] InjectParametersExpressionVisitor transformingVisitor)
+                : base(transformingVisitor)
+            {
+            }
+
+            public override void VisitQueryModel(QueryModel queryModel)
+            {
+                MappingScope = new InjectParametersMappingScope(MappingScope);
+
+                base.VisitQueryModel(queryModel);
+
+                MappingScope = MappingScope.ParentScope;
+            }
+
+            public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
+            {
+                fromClause.TransformExpressions(TransformingVisitor.Visit);
+
+                AddInjectParametersExpression(
+                    fromClause,
+                    (c, e) => c.FromExpression = e,
+                    c => c.FromExpression);
+
+                MappingScope.AddQuerySource(fromClause);
+            }
+
+            public override void VisitWhereClause(WhereClause whereClause, QueryModel queryModel, int index)
+            {
+                whereClause.TransformExpressions(TransformingVisitor.Visit);
+
+                AddInjectParametersExpression(
+                    whereClause,
+                    (c, e) => c.Predicate = e,
+                    c => c.Predicate);
+            }
+
+            public override void VisitSelectClause(SelectClause selectClause, QueryModel queryModel)
+            {
+                selectClause.TransformExpressions(TransformingVisitor.Visit);
+
+                AddInjectParametersExpression(
+                    selectClause,
+                    (c, e) => c.Selector = e,
+                    c => c.Selector);
+            }
+
+
+            private void AddInjectParametersExpression<TClause>(
+                TClause clause,
+                Action<TClause, Expression> clauseExpressionSetter,
+                Func<TClause, Expression> clauseExpressionGetter)
+                where TClause : IClause
+            {
+                // we can't add these at the clause level - needs to be added direcly before subquery, so that we enumeate it with correct parameter values
+
+                //var mappingsForCurrentScope = MappingScope.ParameterMappings.SelectMany(m => m.Value);
+                //if (mappingsForCurrentScope.Any())
+                //{
+                //    var clauseExpression = clauseExpressionGetter(clause);
+                //    clauseExpressionSetter(
+                //        clause,
+                //        new InjectParametersExpression(
+                //            mappingsForCurrentScope.Select(m => m.Value).ToList().AsReadOnly(),
+                //            mappingsForCurrentScope.Select(m => m.Key).ToList().AsReadOnly(),
+                //            clauseExpression));
+
+                //    foreach (var mapping in MappingScope.ParameterMappings)
+                //    {
+                //        mapping.Value.Clear();
+                //    }
+                //}
+            }
+        }
+
+        private class InjectParametersQueryModelVisitor2 : QueryModelVisitorBase
+        {
+            private class InnerVisitor : RelinqExpressionVisitor
+            {
+                public InnerVisitor()
+                {
+                    SearchedQuerySources = new List<IQuerySource>();
+                    FoundOutsideCorrelations = new List<Expression>();
+                }
+
+                public List<IQuerySource> SearchedQuerySources { get; private set; }
+
+                public List<Expression> FoundOutsideCorrelations { get; private set; }
+
+                protected override Expression VisitMember(MemberExpression node)
+                {
+                    if (node.Expression is QuerySourceReferenceExpression qsre
+                        && SearchedQuerySources.Contains(qsre.ReferencedQuerySource))
+                    {
+                        // TODO: also remove duplicates
+                        // also, deal with null conditional
+                        FoundOutsideCorrelations.Add(node);
+                    }
+
+                    return node;
+                }
+
+                protected override Expression VisitMethodCall(MethodCallExpression node)
+                {
+                    if (node.IsEFProperty())
+                    {
+                        if (node.Arguments[0] is QuerySourceReferenceExpression qsre
+                            && SearchedQuerySources.Contains(qsre.ReferencedQuerySource))
+                        {
+                            // TODO: also remove duplicates
+                            // also, deal with null conditional
+                            FoundOutsideCorrelations.Add(node);
+                        }
+
+                        return node;
+                    }
+
+                    return base.VisitMethodCall(node);
+                }
+
+                protected override Expression VisitSubQuery(SubQueryExpression expression)
+                {
+                    expression.QueryModel.TransformExpressions(Visit);
+
+                    return expression;
+                }
+            }
+
+            private InnerVisitor _innerVisitor;
+
+            public InjectParametersQueryModelVisitor2()
+            {
+                _innerVisitor = new InnerVisitor();
+            }
+
+            private Dictionary<IQuerySource, List<Tuple<ParameterExpression, Expression>>> _parameterMappings
+                = new Dictionary<IQuerySource, List<Tuple<ParameterExpression, Expression>>>();
+
+            public override void VisitMainFromClause(MainFromClause fromClause, QueryModel queryModel)
+            {
+
+
+
+                fromClause.TransformExpressions(_innerVisitor.Visit);
+
+                _parameterMappings[fromClause] = new List<Tuple<ParameterExpression, Expression>>();
+            }
+
         }
 
         private class EagerLoadingExpressionVisitor : QueryModelVisitorBase
@@ -1589,5 +2247,26 @@ namespace Microsoft.EntityFrameworkCore.Query
         }
 
         #endregion
+
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public static TResult _InjectParameters2<TResult>(
+            QueryContext queryContext,
+            Func<string[], object[], TResult> operation,
+            string[] parameterNames,
+            object[] parameterValues)
+        {
+            //for (var i = 0; i < parameterNames.Length; i++)
+            //{
+            //    queryContext.SetParameter(parameterNames[i], parameterValues[i]);
+            //}
+
+            var result = operation(parameterNames, parameterValues);
+
+            return result;
+        }
     }
 }

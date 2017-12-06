@@ -58,12 +58,12 @@ namespace Microsoft.EntityFrameworkCore.Query
         /// </value>
         MethodInfo GetResultMethod { get; }
 
-        /// <summary>
-        ///     Gets the inject parameters method.
-        /// </summary>
-        /// <value>
-        ///     The pre execute method.
-        /// </value>
-        MethodInfo InjectParametersMethod { get; }
+        ///// <summary>
+        /////     Gets the inject parameters method.
+        ///// </summary>
+        ///// <value>
+        /////     The pre execute method.
+        ///// </value>
+        //MethodInfo InjectParametersMethod { get; }
     }
 }

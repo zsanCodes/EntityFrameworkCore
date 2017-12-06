@@ -12,7 +12,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
     /// <summary>
     ///     A base expression visitor that ignores Block expressions.
     /// </summary>
-    [DebuggerStepThrough]
+    //[DebuggerStepThrough]
     public abstract class ExpressionVisitorBase : RelinqExpressionVisitor
     {
         /// <summary>

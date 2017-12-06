@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Extensions.Internal;
@@ -594,5 +595,43 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
             QuerySourcesRequiringMaterialization.Add(querySource);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual MethodInfo InjectParametersMethod2 => _injectParametersMethodInfo;
+
+        private static readonly MethodInfo _injectParametersMethodInfo
+            = typeof(EntityQueryModelVisitor)
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(EntityQueryModelVisitor._InjectParameters2));
+
     }
 }

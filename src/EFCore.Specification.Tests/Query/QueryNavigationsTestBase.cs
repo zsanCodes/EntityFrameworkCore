@@ -421,6 +421,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         [ConditionalFact]
         public virtual void Select_collection_navigation_simple()
         {
+            // TODO: temporarily tracking is disabled for correlated collections
             AssertQuery<Customer>(
                 cs => from c in cs
                       where c.CustomerID.StartsWith("A")
@@ -431,13 +432,13 @@ namespace Microsoft.EntityFrameworkCore.Query
                     {
                         Assert.Equal(e.CustomerID, a.CustomerID);
                         CollectionAsserter<Order>(o => o.OrderID, (ee, aa) => Assert.Equal(ee.OrderID, aa.OrderID))(e.Orders, a.Orders);
-                    },
-                entryCount: 34);
+                    });
         }
 
         [ConditionalFact]
         public virtual void Select_collection_navigation_multi_part()
         {
+            // TODO: temporarily tracking is disabled for correlated collections
             AssertQuery<Order>(
                 os => from o in os
                       where o.CustomerID == "ALFKI"
@@ -447,8 +448,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                     {
                         Assert.Equal(e.OrderID, a.OrderID);
                         CollectionAsserter<Order>(o => o.OrderID, (ee, aa) => Assert.Equal(ee.OrderID, aa.OrderID))(e.Orders, a.Orders);
-                    },
-                entryCount: 7);
+                    });
         }
 
         [ConditionalFact]

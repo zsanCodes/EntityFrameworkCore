@@ -787,5 +787,81 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
         }
 
         #endregion
+
+        #region InjectParameters
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual MethodInfo InjectParametersMethod => _injectParametersMethodInfo;
+
+        private static readonly MethodInfo _injectParametersMethodInfo
+            = typeof(AsyncLinqOperatorProvider)
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(_InjectParameters));
+
+        [UsedImplicitly]
+        // ReSharper disable once InconsistentNaming
+        private static IAsyncEnumerable<TElement> _InjectParameters<TElement>(
+            QueryContext queryContext,
+            IAsyncEnumerable<TElement> source,
+            string[] parameterNames,
+            object[] parameterValues)
+            => new ParameterInjector<TElement>(queryContext, source, parameterNames, parameterValues);
+
+        private sealed class ParameterInjector<TElement> : IAsyncEnumerable<TElement>
+        {
+            private readonly QueryContext _queryContext;
+            private readonly IAsyncEnumerable<TElement> _innerEnumerable;
+            private readonly string[] _parameterNames;
+            private readonly object[] _parameterValues;
+
+            public ParameterInjector(
+                QueryContext queryContext,
+                IAsyncEnumerable<TElement> innerEnumerable,
+                string[] parameterNames,
+                object[] parameterValues)
+            {
+                _queryContext = queryContext;
+                _innerEnumerable = innerEnumerable;
+                _parameterNames = parameterNames;
+                _parameterValues = parameterValues;
+            }
+
+            IAsyncEnumerator<TElement> IAsyncEnumerable<TElement>.GetEnumerator() => new InjectParametersEnumerator(this);
+
+            private sealed class InjectParametersEnumerator : IAsyncEnumerator<TElement>
+            {
+                private readonly IAsyncEnumerator<TElement> _innerEnumerator;
+
+                public InjectParametersEnumerator(ParameterInjector<TElement> parameterInjector)
+                {
+                    for (var i = 0; i < parameterInjector._parameterNames.Length; i++)
+                    {
+                        parameterInjector._queryContext.SetParameter(
+                            parameterInjector._parameterNames[i],
+                            parameterInjector._parameterValues[i]);
+                    }
+
+                    _innerEnumerator = parameterInjector._innerEnumerable.GetEnumerator();
+                }
+
+                public TElement Current => _innerEnumerator.Current;
+
+                public async Task<bool> MoveNext(CancellationToken cancellationToken)
+                    => await _innerEnumerator.MoveNext(cancellationToken);
+
+                public void Dispose() => _innerEnumerator.Dispose();
+            }
+        }
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual MethodInfo InjectParametersScalarMethod => null;
+
+        #endregion
     }
 }

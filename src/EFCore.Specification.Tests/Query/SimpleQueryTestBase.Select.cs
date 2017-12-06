@@ -602,5 +602,39 @@ namespace Microsoft.EntityFrameworkCore.Query
                     .Select(e => string.Format("{0}", e.EmployeeID))
                     .Skip(1));
         }
+
+        [ConditionalFact]
+        public virtual void Outer_parameter_in_selector()
+        {
+            AssertQuery<Customer, Order>(
+                (cs, os) =>
+                    from c in cs
+                    orderby c.CustomerID
+                    select new
+                    {
+                        c.CustomerID,
+                        Subquery = (from o in os
+                                    where o.CustomerID == c.CustomerID
+                                    select o)
+                    },
+                assertOrder: true,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.CustomerID, a.CustomerID);
+                    CollectionAsserter<Order>(ee => ee.OrderID, (ee, aa) => Assert.Equal(ee.OrderID, aa.OrderID))(e.Subquery, a.Subquery);
+                });
+        }
+
+        [ConditionalFact]
+        public virtual void Outer_parameter_in_join_key()
+        {
+            using (var ctx = CreateContext())
+            {
+                ctx.Customers.Select(c => c.Orders.Where(o => c.CustomerID != "ALFKI")).ToList();
+            }
+
+
+
+        }
     }
 }

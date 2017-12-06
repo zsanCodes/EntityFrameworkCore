@@ -288,34 +288,34 @@ namespace Microsoft.EntityFrameworkCore.Query
             }
         }
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public virtual MethodInfo InjectParametersMethod => _injectParametersMethodInfo;
+        ///// <summary>
+        /////     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        /////     directly from your code. This API may change or be removed in future releases.
+        ///// </summary>
+        //public virtual MethodInfo InjectParametersMethod => _injectParametersMethodInfo;
 
-        private static readonly MethodInfo _injectParametersMethodInfo
-            = typeof(QueryMethodProvider)
-                .GetTypeInfo()
-                .GetDeclaredMethod(nameof(_InjectParameters));
+        //private static readonly MethodInfo _injectParametersMethodInfo
+        //    = typeof(QueryMethodProvider)
+        //        .GetTypeInfo()
+        //        .GetDeclaredMethod(nameof(_InjectParameters));
 
-        [UsedImplicitly]
-        // ReSharper disable once InconsistentNaming
-        private static IEnumerable<TElement> _InjectParameters<TElement>(
-            QueryContext queryContext,
-            IEnumerable<TElement> source,
-            string[] parameterNames,
-            object[] parameterValues)
-        {
-            for (var i = 0; i < parameterNames.Length; i++)
-            {
-                queryContext.SetParameter(parameterNames[i], parameterValues[i]);
-            }
+        //[UsedImplicitly]
+        //// ReSharper disable once InconsistentNaming
+        //private static IEnumerable<TElement> _InjectParameters<TElement>(
+        //    QueryContext queryContext,
+        //    IEnumerable<TElement> source,
+        //    string[] parameterNames,
+        //    object[] parameterValues)
+        //{
+        //    for (var i = 0; i < parameterNames.Length; i++)
+        //    {
+        //        queryContext.SetParameter(parameterNames[i], parameterValues[i]);
+        //    }
 
-            foreach (var element in source)
-            {
-                yield return element;
-            }
-        }
+        //    foreach (var element in source)
+        //    {
+        //        yield return element;
+        //    }
+        //}
     }
 }

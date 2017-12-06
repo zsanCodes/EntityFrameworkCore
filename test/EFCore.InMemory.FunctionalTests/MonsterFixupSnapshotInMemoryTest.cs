@@ -12,6 +12,12 @@ namespace Microsoft.EntityFrameworkCore
         {
         }
 
+
+        public override void Can_build_monster_model_and_seed_data_using_FKs()
+        {
+            base.Can_build_monster_model_and_seed_data_using_FKs();
+        }
+
         public class MonsterFixupSnapshotInMemoryFixture : MonsterFixupSnapshotFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory => InMemoryTestStoreFactory.Instance;

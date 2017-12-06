@@ -743,5 +743,76 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
                 .Where(mi => mi.GetParameters().Length == parameterCount + 1);
 
         #endregion
+
+        #region InjectParameters
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual MethodInfo InjectParametersMethod => _injectParametersMethodInfo;
+
+        private static readonly MethodInfo _injectParametersMethodInfo
+            = typeof(LinqOperatorProvider)
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(_InjectParameters));
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [UsedImplicitly]
+        // ReSharper disable once InconsistentNaming
+        public static IEnumerable<TElement> _InjectParameters<TElement>(
+            QueryContext queryContext,
+            IEnumerable<TElement> source,
+            string[] parameterNames,
+            object[] parameterValues)
+        {
+            for (var i = 0; i < parameterNames.Length; i++)
+            {
+                queryContext.SetParameter(parameterNames[i], parameterValues[i]);
+            }
+
+            foreach (var element in source)
+            {
+                yield return element;
+            }
+        }
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual MethodInfo InjectParametersScalarMethod => _injectParametersScalarMethodInfo;
+
+        private static readonly MethodInfo _injectParametersScalarMethodInfo
+            = typeof(LinqOperatorProvider)
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(_InjectParametersScalar));
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        [UsedImplicitly]
+        // ReSharper disable once InconsistentNaming
+        public static TResult _InjectParametersScalar<TResult>(
+            QueryContext queryContext,
+            Func<TResult> operation,
+            string[] parameterNames,
+            object[] parameterValues)
+        {
+            for (var i = 0; i < parameterNames.Length; i++)
+            {
+                queryContext.SetParameter(parameterNames[i], parameterValues[i]);
+            }
+
+            var result = operation();
+
+            return result;
+        }
+
+        #endregion
     }
 }

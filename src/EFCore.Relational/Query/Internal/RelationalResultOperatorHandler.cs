@@ -409,7 +409,10 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
                 }
 
                 if (methodCallExpression.Method.MethodIsClosedFormOf(
-                    _relationalQueryCompilationContext.QueryMethodProvider.InjectParametersMethod))
+                    _relationalQueryCompilationContext.InjectParametersMethod2))
+                    //_relationalQueryCompilationContext.LinqOperatorProvider.InjectParametersMethod))
+                    //|| methodCallExpression.Method.MethodIsClosedFormOf(
+                    //_relationalQueryCompilationContext.QueryMethodProvider.InjectParametersMethod))
                 {
                     var newSource = VisitMethodCall((MethodCallExpression)methodCallExpression.Arguments[1]);
 
