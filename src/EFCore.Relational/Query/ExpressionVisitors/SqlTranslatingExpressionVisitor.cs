@@ -668,8 +668,8 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
             return TryBindMemberOrMethodToSelectExpression(
                        methodCallExpression, (expression, visitor, binder)
                            => visitor.BindMethodCallExpression(expression, binder))
-                   ?? _queryModelVisitor.BindLocalMethodCallExpression(methodCallExpression)
-                   ?? _queryModelVisitor.BindMethodToOuterQueryParameter(methodCallExpression);
+                   ?? _queryModelVisitor.BindLocalMethodCallExpression(methodCallExpression);
+                   //?? _queryModelVisitor.BindMethodToOuterQueryParameter(methodCallExpression);
         }
 
         private bool IsNonTranslatableSubquery(Expression expression)
@@ -1017,6 +1017,22 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
                 : null;
         }
 
+        private Expression TryFindExpressionForParameter(ParameterExpression parameter)
+        {
+            foreach (var mapping in _queryModelVisitor.QueryCompilationContext.OuterParameterMappings)
+            {
+                foreach (var mappingElement in mapping.Value)
+                {
+                    if (mappingElement.Value == parameter)
+                    {
+                        return mappingElement.Key;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         ///     Visits a parameter expression.
         /// </summary>
@@ -1027,6 +1043,19 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
         protected override Expression VisitParameter(ParameterExpression expression)
         {
             Check.NotNull(expression, nameof(expression));
+
+            if (expression.Name.StartsWith("_outer"))
+            {
+                var correspondingExpression = TryFindExpressionForParameter(expression);
+                if (correspondingExpression != null)
+                {
+                    var translatedExpression = Visit(correspondingExpression);
+                    if (translatedExpression != null)
+                    {
+                        return translatedExpression;
+                    }
+                }
+            }
 
             var underlyingType = expression.Type.UnwrapNullableType().UnwrapEnumType();
 

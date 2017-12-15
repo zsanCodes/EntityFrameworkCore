@@ -601,7 +601,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                         out var parameter))
                 {
                     // hack
-                    _queryModelMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(memberExpression, parameter));
+                    _queryCompilationContext.OuterParameterMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(memberExpression, parameter));
 
                     return parameter;
                 }
@@ -621,7 +621,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                         out var parameter))
                 {
                     // hack
-                    _queryModelMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(methodCallExpression, parameter));
+                    _queryCompilationContext.OuterParameterMappings[_currentQueryModel].Add(new KeyValuePair<Expression, ParameterExpression>(methodCallExpression, parameter));
 
                     return parameter;
                 }
@@ -659,8 +659,8 @@ namespace Microsoft.EntityFrameworkCore.Query
 
             private QueryModel _currentQueryModel;
 
-            private Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>> _queryModelMappings
-                = new Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>>();
+            //private Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>> _queryModelMappings
+            //    = new Dictionary<QueryModel, List<KeyValuePair<Expression, ParameterExpression>>>();
 
             protected override Expression VisitSubQuery(SubQueryExpression expression)
             {
@@ -673,16 +673,16 @@ namespace Microsoft.EntityFrameworkCore.Query
                     var previousQueryModel = _currentQueryModel;
                     _currentQueryModel = expression.QueryModel;
 
-                    if (!_queryModelMappings.ContainsKey(_currentQueryModel))
+                    if (!_queryCompilationContext.OuterParameterMappings.ContainsKey(_currentQueryModel))
                     {
-                        _queryModelMappings[expression.QueryModel] = new List<KeyValuePair<Expression, ParameterExpression>>();
+                        _queryCompilationContext.OuterParameterMappings[expression.QueryModel] = new List<KeyValuePair<Expression, ParameterExpression>>();
 
                         QueryModelVisitor.VisitQueryModel(expression.QueryModel);
                     }
 
                     //var mappingsForCurrentScope = Foo(_accessibleParameterMappingScope);// _accessibleParameterMappingScope.ParameterMappings.SelectMany(m => m.Value);
 
-                    var mappingsForCurrentScope = _queryModelMappings[_currentQueryModel];
+                    var mappingsForCurrentScope = _queryCompilationContext.OuterParameterMappings[_currentQueryModel];
 
                     _currentQueryModel = previousQueryModel;
 
