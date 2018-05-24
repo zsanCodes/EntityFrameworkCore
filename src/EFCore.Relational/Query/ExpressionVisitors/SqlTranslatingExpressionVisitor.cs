@@ -93,6 +93,15 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
         /// </value>
         public virtual Expression ClientEvalPredicate { get; private set; }
 
+
+        /// <summary>
+        ///     Returns value indicating whether translated expression requires binding to the outer query using a parameter.
+        /// </summary>
+        /// <value>
+        ///     True if the query translation requires outer parameter, false otherwise.
+        /// </value>
+        public virtual bool ContainsOuterParameterBinding { get; private set; }
+
         /// <summary>
         ///     Visits the given expression.
         /// </summary>
@@ -654,11 +663,30 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
                 }
             }
 
-            return TryBindMemberOrMethodToSelectExpression(
+            var result = TryBindMemberOrMethodToSelectExpression(
                        methodCallExpression, (expression, visitor, binder)
                            => visitor.BindMethodCallExpression(expression, binder))
-                   ?? _queryModelVisitor.BindLocalMethodCallExpression(methodCallExpression)
-                   ?? _queryModelVisitor.BindMethodToOuterQueryParameter(methodCallExpression);
+                   ?? _queryModelVisitor.BindLocalMethodCallExpression(methodCallExpression);
+
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = _queryModelVisitor.BindMethodToOuterQueryParameter(methodCallExpression);
+
+            if (result != null)
+            {
+                ContainsOuterParameterBinding = true;
+            }
+
+            return result;
+
+            //return TryBindMemberOrMethodToSelectExpression(
+            //           methodCallExpression, (expression, visitor, binder)
+            //               => visitor.BindMethodCallExpression(expression, binder))
+            //       ?? _queryModelVisitor.BindLocalMethodCallExpression(methodCallExpression)
+            //       ?? _queryModelVisitor.BindMethodToOuterQueryParameter(methodCallExpression);
         }
 
         private bool IsNonTranslatableSubquery(Expression expression)

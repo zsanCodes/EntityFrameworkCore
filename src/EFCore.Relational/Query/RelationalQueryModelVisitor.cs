@@ -490,7 +490,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         /// <param name="queryModel"> The sub-query model. </param>
         public virtual void VisitSubQueryModel([NotNull] QueryModel queryModel)
         {
-            CanBindToParentQueryModel = true;
+            CanBindToParentQueryModel = false;//true;
 
             VisitQueryModel(queryModel);
         }
@@ -1013,6 +1013,11 @@ namespace Microsoft.EntityFrameworkCore.Query
                     {
                         requiresClientFilter = true;
                         whereClause = new WhereClause(sqlTranslatingExpressionVisitor.ClientEvalPredicate);
+                    }
+
+                    if (sqlTranslatingExpressionVisitor.ContainsOuterParameterBinding)
+                    {
+                        RequiresClientEval = true;
                     }
                 }
                 else
