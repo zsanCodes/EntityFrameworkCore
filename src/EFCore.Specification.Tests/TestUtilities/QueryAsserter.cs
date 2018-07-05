@@ -303,6 +303,35 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
         {
             using (var context = _contextCreator())
             {
+                if (!isAsync)
+                {
+                    var queryGenerator = new ProceduralQueryExpressionGenerator();
+
+
+
+                    var query = actualQuery(SetExtractor.Set<TItem1>(context));
+                    var expression = query.Expression;
+
+                    queryGenerator.Generate(expression, 42);
+
+
+                    var typeArgument = expression.Type.GetGenericArguments()[0];
+                    var selectGenericMethod = typeof(Queryable).GetMethods().Where(m => m.Name == "Select").First();
+                    var selectConcrete = selectGenericMethod.MakeGenericMethod(typeArgument, typeof(int));
+
+                    var lambda = Expression.Lambda(Expression.Constant(27), Expression.Parameter(typeArgument, "prm"));
+
+                    var resultExpression = Expression.Call(selectConcrete, expression, lambda);
+
+
+
+                    var newQuery = query.Provider.CreateQuery(resultExpression);
+
+                    foreach (var r in newQuery)
+                    {
+                    }
+                }
+
                 var actual = isAsync
                     ? await actualQuery(SetExtractor.Set<TItem1>(context)).ToArrayAsync()
                     : actualQuery(SetExtractor.Set<TItem1>(context)).ToArray();
