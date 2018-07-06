@@ -3133,14 +3133,14 @@ namespace Microsoft.EntityFrameworkCore.Query
                     where l2o.Id == 7
                     select
                         (from l2i in l2s
-                         join l1i in l1s
-                             on l2i.Level1_Required_Id equals l1i.Id
-                         orderby l2i.Id
-                         select new
-                         {
-                             Navigation = l2i.OneToOne_Required_FK_Inverse,
-                             Constant = 7
-                         }).First().Navigation.Name);
+                            join l1i in l1s
+                                on l2i.Level1_Required_Id equals l1i.Id
+                            orderby l2i.Id
+                            select new
+                            {
+                                Navigation = l2i.OneToOne_Required_FK_Inverse,
+                                Constant = 7
+                            }).First().Navigation.Name);
         }
 
         [Theory]
