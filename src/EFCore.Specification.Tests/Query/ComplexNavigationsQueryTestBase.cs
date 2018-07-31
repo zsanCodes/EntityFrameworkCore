@@ -205,6 +205,34 @@ namespace Microsoft.EntityFrameworkCore.Query
                 (e, a) => Assert.Equal(e.Id, a.Id));
         }
 
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Fubarbaz(bool isAsync)
+        {
+            return AssertQuery<Level2>(
+                isAsync,
+                l2s => l2s.Where(
+                    l => l.OneToOne_Required_FK_Inverse2 == new Level1
+                    {
+                        Id = 1
+                    }
+                         || l.OneToOne_Required_FK_Inverse2 == new Level1
+                         {
+                             Id = 2
+                         })
+                         .OrderBy(e => e.Id)
+                         ,
+                l2s => l2s.Where(
+                    l => l.OneToOne_Required_FK_Inverse2.Id == 1
+                         || l.OneToOne_Required_FK_Inverse2.Id == 2),
+                e => e.Id,
+                (e, a) => Assert.Equal(e.Id, a.Id));
+        }
+
+
+
+
+
         [ConditionalFact]
         public virtual void Data_reader_is_closed_correct_number_of_times_for_include_queries_on_optional_navigations()
         {

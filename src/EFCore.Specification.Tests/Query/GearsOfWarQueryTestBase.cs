@@ -1113,6 +1113,16 @@ namespace Microsoft.EntityFrameworkCore.Query
                 gs => gs.Select(g => g.LeaderNickname != null ? (bool?)(g.Nickname.Length == 5) : (bool?)null));
         }
 
+        [ConditionalFact]
+        public virtual void Fubar()
+        {
+            using (var ctx = CreateContext())
+            {
+                var query = ctx.Gears.Select(g => g.LeaderNickname != null ? (bool?)(g.Nickname.Length == 5) : (bool?)null).OrderBy(e => e.HasValue).ThenBy(e => e.HasValue);
+                var result = query.ToList();
+            }
+        }
+
         [Theory]
         [MemberData(nameof(IsAsyncData))]
         public virtual Task Select_null_propagation_negative2(bool isAsync)

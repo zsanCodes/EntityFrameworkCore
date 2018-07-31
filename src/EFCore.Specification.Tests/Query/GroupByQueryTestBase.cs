@@ -2622,13 +2622,13 @@ namespace Microsoft.EntityFrameworkCore.Query
         public virtual Task GroupBy_Shadow(bool isAsync)
         {
             return AssertQuery<Employee>(
-                isAsync,
-                es =>
-                    es.Where(
-                            e => EF.Property<string>(e, "Title") == "Sales Representative"
-                                 && e.EmployeeID == 1)
-                        .GroupBy(e => EF.Property<string>(e, "Title"))
-                        .Select(g => EF.Property<string>(g.First(), "Title")));
+                    isAsync,
+                    es =>
+                        es.Where(
+                                e => EF.Property<string>(e, "Title") == "Sales Representative"
+                                     && e.EmployeeID == 1)
+                            .GroupBy(e => EF.Property<string>(e, "Title"))
+                            .Select(g => EF.Property<string>(g.First(), "Title")));
         }
 
         [Theory]

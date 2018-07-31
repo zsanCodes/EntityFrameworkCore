@@ -423,6 +423,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
                         return CompareListInit((ListInitExpression)a, (ListInitExpression)b);
                     case ExpressionType.Extension:
                         return CompareExtension(a, b);
+                    case ExpressionType.Default:
+                        return true;
                     default:
                         throw new NotImplementedException();
                 }

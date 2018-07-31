@@ -239,6 +239,14 @@ namespace Microsoft.EntityFrameworkCore.Query
         [MemberData(nameof(IsAsyncData))]
         public virtual Task Select_collection_FirstOrDefault_project_single_column1(bool isAsync)
         {
+            //var strings = new string[] { "Foo", "Bar", "Baz" };
+            //var charsProperty = typeof(string).GetProperties().Where(p => p.Name == "Chars").Single();
+            //var parameter = System.Linq.Expressions.Expression.Parameter(typeof(string), "prm");
+            //var lam = System.Linq.Expressions.Expression.Lambda<Func<string, char>>(System.Linq.Expressions.Expression.Property(parameter, charsProperty), parameter);
+            //var compiled = lam.Compile();
+
+            //var result = Enumerable.Select(strings, compiled).ToList();
+
             return AssertQuery<Customer>(
                 isAsync,
                 cs => cs.OrderBy(c => c.CustomerID).Take(2).Select(c => c.Orders.OrderBy(o => o.OrderID).FirstOrDefault().CustomerID));
@@ -1150,7 +1158,6 @@ namespace Microsoft.EntityFrameworkCore.Query
                     }),
                 entryCount: 2155);
         }
-
 
         [Theory(Skip = "issue #6061")]
         [MemberData(nameof(IsAsyncData))]

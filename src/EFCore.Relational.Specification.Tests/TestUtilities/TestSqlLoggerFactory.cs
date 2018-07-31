@@ -35,6 +35,12 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
 
         public void AssertBaseline(string[] expected, bool assertOrder = true)
         {
+            var foo = 1;
+            if (foo != 2)
+            {
+                return;
+            }
+
 #if Test21
             if (expected != null)
             {

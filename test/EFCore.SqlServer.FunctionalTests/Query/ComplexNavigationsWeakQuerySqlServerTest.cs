@@ -153,6 +153,16 @@ INNER JOIN (
 ORDER BY [t].[Id]");
         }
 
+        public override Task Key_equality_two_conditions_on_same_navigation2(bool isAsync)
+        {
+            return base.Key_equality_two_conditions_on_same_navigation2(isAsync);
+        }
+
+        public override Task Fubarbaz(bool isAsync)
+        {
+            return base.Fubarbaz(isAsync);
+        }
+
         private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

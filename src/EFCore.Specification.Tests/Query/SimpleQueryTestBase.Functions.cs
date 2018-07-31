@@ -607,6 +607,21 @@ namespace Microsoft.EntityFrameworkCore.Query
                 e => e.A);
         }
 
+        [ConditionalFact]
+        public virtual void Fubar()
+        {
+            using (var ctx = CreateContext())
+            {
+                var query = ctx.Orders.Where(o => o.OrderID < 10250).Select(
+                    o => new
+                    {
+                        A = Math.Truncate((double)o.OrderID)
+                    }).OrderBy(ee => ee.A).OrderBy(ee => ee.A);
+
+                var result = query.ToList();
+            }
+        }
+
         [Theory]
         [MemberData(nameof(IsAsyncData))]
         public virtual Task Select_math_truncate_int(bool isAsync)

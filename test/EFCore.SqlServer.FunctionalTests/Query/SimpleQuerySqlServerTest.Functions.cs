@@ -585,6 +585,11 @@ FROM [Orders] AS [o]
 WHERE [o].[OrderID] < 10250");
         }
 
+        public override void Fubar()
+        {
+            base.Fubar();
+        }
+
         public override async Task Where_math_round2(bool isAsync)
         {
             await base.Where_math_round2(isAsync);
