@@ -1149,11 +1149,6 @@ FROM [Gears] AS [g]
 WHERE [g].[Discriminator] IN (N'Officer', N'Gear')");
         }
 
-        public override void Fubar()
-        {
-            base.Fubar();
-        }
-
         public override async Task Select_null_propagation_negative2(bool isAsync)
         {
             await base.Select_null_propagation_negative2(isAsync);

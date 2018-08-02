@@ -9,6 +9,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 {
     public class AppendOrderByPropertyExpressionMutator : ExpressionMutator
     {
+        public AppendOrderByPropertyExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
+
         private bool HasValidPropertyToOrderBy(Expression expression)
             => expression.Type.GetGenericArguments()[0].GetProperties().Where(p => !p.GetMethod.IsStatic)
                 .Any(p => p.PropertyType.GetInterfaces().Any(i => i == typeof(IComparable)));

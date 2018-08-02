@@ -9,9 +9,14 @@ using System.Reflection;
 
 namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 {
-    public class InjectSumWithItselfExpressionMutator : ExpressionMutator
+    public class InjectSumWithSselfExpressionMutator : ExpressionMutator
     {
         private ExpressionFinder _expressionFinder = new ExpressionFinder();
+
+        public InjectSumWithSselfExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
 
         public override bool IsValid(Expression expression)
         {

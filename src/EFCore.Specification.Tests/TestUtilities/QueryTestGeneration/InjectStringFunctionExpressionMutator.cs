@@ -14,6 +14,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
     {
         private ExpressionFinder _expressionFinder = new ExpressionFinder();
 
+        public InjectStringFunctionExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
+
         public override bool IsValid(Expression expression)
         {
             _expressionFinder.Visit(expression);
@@ -24,15 +29,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
         public override Expression Apply(Expression expression, Random random)
         {
             var i = random.Next(_expressionFinder.FoundExpressions.Count);
-
-            //var foo2 = "";
-            //foo2.TrimStart();
-
-            //var foo3 = typeof(string).GetMethods().Where(m => m.Name == "TrimStart").ToList();
-
-            var methodNames = new[] { nameof(string.ToLower), nameof(string.ToUpper), nameof(string.Trim), /*nameof(string.TrimStart), nameof(string.TrimEnd)*/ };
-
-            var foo = typeof(string).GetRuntimeMethods().Where(m => m.Name == "TrimStart").ToList();
+            var methodNames = new[] { nameof(string.ToLower), nameof(string.ToUpper), nameof(string.Trim) };
 
             var methodInfos = methodNames.Select(n => typeof(string).GetRuntimeMethod(n, new Type[] { })).ToList();
             var methodInfo = methodInfos[random.Next(methodInfos.Count)];

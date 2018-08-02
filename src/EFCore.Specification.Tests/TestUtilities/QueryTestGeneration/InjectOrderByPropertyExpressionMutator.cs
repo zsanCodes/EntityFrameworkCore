@@ -13,6 +13,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
     {
         private ExpressionFinder _expressionFinder = new ExpressionFinder();
 
+        public InjectOrderByPropertyExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
+
         public override bool IsValid(Expression expression)
         {
             _expressionFinder.Visit(expression);

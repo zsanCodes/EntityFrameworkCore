@@ -9,6 +9,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 { 
     public class AppendSelectConstantExpressionMutator : ExpressionMutator
     {
+        public AppendSelectConstantExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
+
         private List<(Type type, Expression expression)> _expressions = new List<(Type type, Expression expression)>
         {
             (type: typeof(int), expression: Expression.Constant(42, typeof(int))),

@@ -9,6 +9,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 {
     public class AppendThenByIdentityExpressionMutator : ExpressionMutator
     {
+        public AppendThenByIdentityExpressionMutator(DbContext context)
+            : base(context)
+        {
+        }
+
         public override bool IsValid(Expression expression)
             => IsOrderedQueryableResult(expression)
             && expression.Type.GetGenericArguments()[0].GetInterfaces().Any(i => i == typeof(IComparable));

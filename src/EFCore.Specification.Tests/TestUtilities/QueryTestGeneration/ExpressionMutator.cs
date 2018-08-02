@@ -20,6 +20,9 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
         protected static MethodInfo ThenByMethodInfo;
         protected static MethodInfo ThenByDescendingMethodInfo;
         protected static MethodInfo TakeMethodInfo;
+        protected static MethodInfo JoinMethodInfo;
+
+        protected DbContext Context { get; }
 
         static ExpressionMutator()
         {
@@ -30,6 +33,12 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
             ThenByMethodInfo = typeof(Queryable).GetMethods().Where(m => m.Name == nameof(Queryable.ThenBy) && m.GetParameters().Count() == 2).Single();
             ThenByDescendingMethodInfo = typeof(Queryable).GetMethods().Where(m => m.Name == nameof(Queryable.ThenByDescending) && m.GetParameters().Count() == 2).Single();
             TakeMethodInfo = typeof(Queryable).GetMethods().Where(m => m.Name == nameof(Queryable.Take)).Single();
+            JoinMethodInfo = typeof(Queryable).GetMethods().Where(m => m.Name == nameof(Queryable.Join) && m.GetParameters().Count() == 5).Single();
+        }
+
+        public ExpressionMutator(DbContext context)
+        {
+            Context = context;
         }
 
         private static bool IsQueryableType(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IQueryable<>);
@@ -43,9 +52,6 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
         protected static bool IsOrderedQueryableResult(Expression expression)
             => IsOrderedQueryableType(expression.Type)
                 || expression.Type.GetInterfaces().Any(i => IsOrderedQueryableType(i));
-
-        public abstract bool IsValid(Expression expression);
-        public abstract Expression Apply(Expression expression, Random random);
 
         protected static List<PropertyInfo> FilterPropertyInfos(Type type, List<PropertyInfo> properties)
         {
@@ -102,6 +108,12 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 
             return properties;
         }
+
+        protected bool IsEntityType(Type type)
+            => Context.Model.GetEntityTypes().Select(et => et.ClrType).Contains(type);
+
+        public abstract bool IsValid(Expression expression);
+        public abstract Expression Apply(Expression expression, Random random);
 
         protected class ExpressionInjector : ExpressionVisitor
         {

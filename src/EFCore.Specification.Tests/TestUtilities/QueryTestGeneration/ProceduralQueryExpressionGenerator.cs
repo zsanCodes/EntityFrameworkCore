@@ -13,7 +13,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
     {
         private List<ExpressionMutator> _mutators;
 
-        public ProceduralQueryExpressionGenerator()
+        public ProceduralQueryExpressionGenerator(DbContext context)
         {
             _mutators = new List<ExpressionMutator>
             {
@@ -24,11 +24,14 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
                 //new AppendOrderByPropertyExpressionMutator(),
                 //new AppendThenByIdentityExpressionMutator(),
                 //new AppendTakeExpressionMutator (),
-                //new InjectStringConcatWithItselfExpressionMutator(),
+                //new InjectStringConcatWithSelfExpressionMutator(),
                 //new InjectOrderByPropertyExpressionMutator(),
                 //new InjectThenByPropertyExpressionMutator(),
                 //new InjectCoalesceExpressionMutator(),
-                new InjectStringFunctionExpressionMutator(),
+                //new InjectStringFunctionExpressionMutator(),
+                //new AppendCorrelatedCollectionExpressionMutator(context),
+                new InjectJoinWithSelfExpressionMutator(context),
+
             };
         }
 
@@ -273,15 +276,17 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
             }
         }
 
-        public void Execute<TElement>(IQueryable<TElement> query)
+        public void Execute<TElement>(IQueryable<TElement> query, DbContext context)
         {
             var seed = new Random().Next();
+
+            //Console.WriteLine(seed);
 
             //seed = 1517471825;
 
             //Console.WriteLine(seed);
 
-            seed = 793794433;
+            //seed = 793794433;
 
 
             //Console.WriteLine(seed);
@@ -301,15 +306,11 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities.QueryTestGeneration
 
             //var queryString = new Query.Internal.ExpressionPrinter().PrintDebug(newExpression, printConnections: false);
 
-
-
             var expression = query.Expression;
-            var queryGenerator = new ProceduralQueryExpressionGenerator();
+            var queryGenerator = new ProceduralQueryExpressionGenerator(context);
             var newExpression = queryGenerator.Generate(expression, random);
 
             var queryString = new Query.Internal.ExpressionPrinter().PrintDebug(newExpression, printConnections: false);
-
-
             var newQuery = query.Provider.CreateQuery(newExpression);
 
             try

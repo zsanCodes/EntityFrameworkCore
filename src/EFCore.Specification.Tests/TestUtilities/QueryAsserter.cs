@@ -307,7 +307,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -356,7 +356,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -411,7 +411,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context), SetExtractor.Set<TItem3>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -516,7 +516,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -564,7 +564,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -610,7 +610,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context), SetExtractor.Set<TItem3>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -669,7 +669,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -716,7 +716,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -770,7 +770,8 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
@@ -847,7 +848,7 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
                 if (!isAsync)
                 {
                     var query = actualQuery(SetExtractor.Set<TItem1>(context), SetExtractor.Set<TItem2>(context));
-                    new ProcedurallyGeneratedQueryExecutor().Execute(query);
+                    new ProcedurallyGeneratedQueryExecutor().Execute(query, context);
                 }
 
                 var actual = isAsync
