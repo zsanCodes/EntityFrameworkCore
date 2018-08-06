@@ -201,7 +201,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             }
         }
 
-        [ConditionalFact]
+        [ConditionalFact(Skip = "Deadlock issue#12842")]
         public virtual async Task Mixed_sync_async_query()
         {
             using (var context = CreateContext())

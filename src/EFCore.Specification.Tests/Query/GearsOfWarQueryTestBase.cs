@@ -4862,7 +4862,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 });
         }
 
-        [ConditionalTheory]
+        [ConditionalTheory(Skip = "Deadlock issue#11848")]
         [MemberData(nameof(IsAsyncData))]
         public virtual Task Correlated_collections_on_select_many(bool isAsync)
         {
